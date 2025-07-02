@@ -6,22 +6,19 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-public record CreateFileRequest(
+public record MoveFileRequest(
 
-        @JsonProperty("fileType")
-        @NotNull(message = "Invalid file type")
-        FileType fileType,
-
-        @JsonProperty("name")
-        @NotNull(message = "Invalid file name")
-        @NotBlank(message = "File name cannot be blank")
-        @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Only Alphanumeric names allowed")
-        String name,
-
-        @JsonProperty("path")
+        @JsonProperty("sourcePath")
         @NotNull(message = "Invalid path")
         @NotBlank(message = "Path cannot be blank")
         @Pattern(regexp = "^[A-Za-z0-9\\^]+$", message = "Only \\ can be used for concatenation of path names")
         @ValidPath
-        String path) {
+        String sourcePath,
+
+        @JsonProperty("destinationPath")
+        @NotNull(message = "Invalid path")
+        @NotBlank(message = "Path cannot be blank")
+        @Pattern(regexp = "^[A-Za-z0-9\\^]+$", message = "Only \\ can be used for concatenation of path names")
+        @ValidPath
+        String destinationPath) {
 }

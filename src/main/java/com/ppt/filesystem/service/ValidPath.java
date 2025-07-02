@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = PathValidator.class)
 public @interface ValidPath {
-    String message() default "Invalid File Request";
+    String message() default "Invalid path";
 
     Class<?>[] groups() default {};
 

@@ -20,13 +20,13 @@ public class FileNode {
     }
 
     public void insert(File newFile) {
-        FileNode parentNode = resolveParentNode(this, newFile.path());
+        var parentNode = resolveParentNode(this, newFile.path());
         validateInsertion(parentNode, newFile);
         parentNode.childNodes.putIfAbsent(newFile.name(), new FileNode(newFile));
     }
 
     public void delete(String deleteFilePath) {
-        FileNode parentNode = resolveParentNode(this, deleteFilePath);
+        var parentNode = resolveParentNode(this, deleteFilePath);
     }
 
     private FileNode resolveParentNode(FileNode root, String fullPath) {

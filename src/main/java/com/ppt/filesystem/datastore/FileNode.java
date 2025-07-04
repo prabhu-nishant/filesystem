@@ -24,13 +24,15 @@ public class FileNode {
     }
 
     public void insert(File newFile) {
-        var parentNode = resolveParentNode(this, newFile.path());
+        var parentPath = extractParentPath(newFile.path());
+        var parentNode = traverseNode(this, parentPath);
         validateInsertion(parentNode, newFile);
         parentNode.childNodes.putIfAbsent(newFile.name(), new FileNode(newFile));
     }
 
     public void delete(String deleteFilePath) {
-        var parentNode = resolveParentNode(this, deleteFilePath);
+        var parentPath = extractParentPath(deleteFilePath);
+        var parentNode = traverseNode(this, parentPath);
 
         if (deleteFilePath.equals(parentNode.file.name())) {
             this.childNodes.remove(parentNode.file.name());
@@ -44,18 +46,42 @@ public class FileNode {
 
     public void move(String sourcePath, String destinationPath) {
 
-        var sourceFileNode = resolveParentNode(this, sourcePath);
-        var destinationFileNode = resolveParentNode(this, destinationPath);
+        var sourceNode = traverseNode(this, sourcePath);
+        var destinationNode = traverseNode(this, destinationPath);
+        var movedFileNode = getNewFileNode(sourceNode, destinationPath);
+        movedFileNode.childNodes.putAll(sourceNode.childNodes);
+        validateInsertion(destinationNode, movedFileNode.file);
+        updateChildNodes(movedFileNode.childNodes, movedFileNode.file.path());
+        destinationNode.childNodes.putIfAbsent(movedFileNode.file.name(), movedFileNode);
+        delete(sourcePath);
+    }
 
+    private void updateChildNodes(Map<String, FileNode> childNodes, String destinationPath) {
+
+        childNodes.replaceAll((name, childNode) -> {
+            var updatedChild = getNewFileNode(childNode, destinationPath);
+            updateChildNodes(updatedChild.childNodes, updatedChild.file.path());
+            return updatedChild;
+        });
     }
 
     public void print() {
         printNode(this, 0);
     }
 
+    private FileNode getNewFileNode(FileNode fileNode, String filePath){
+        var file = fileNode.file;
+        var filename = file.name();
+        var newFilePath = filePath + "\\" + filename;
+        var newFile = new File(file.fileType(), filename, newFilePath, file.content());
+        var newFileNode = new FileNode(newFile);
+        newFileNode.childNodes.putAll(fileNode.childNodes);
+        return newFileNode;
+    }
+
     private void printNode(FileNode fileNode, int level) {
-        String indent = "\t".repeat(level);
-        System.out.println(indent + "- " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")" + " " + fileNode.file.path()    );
+        String indent = "-----".repeat(level);
+        System.out.println(indent + " - " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")" + " " + fileNode.file.path()    );
 
         for (FileNode child : fileNode.childNodes.values()) {
             printNode(child, level + 1);
@@ -72,8 +98,8 @@ public class FileNode {
         return (lastSeparatorIndex == -1) ? path : path.substring(lastSeparatorIndex + 1);
     }
 
-    private FileNode resolveParentNode(FileNode root, String fullPath) {
-        var pathSegments = extractParentPath(fullPath).split("\\\\");
+    private FileNode traverseNode(FileNode root, String path) {
+        var pathSegments = path.split("\\\\");
         var currentNode = root;
         for (String segment : pathSegments) {
             currentNode = getChildNodeOrThrow(currentNode, segment);

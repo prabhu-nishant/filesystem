@@ -43,7 +43,7 @@ public class FileSystemController {
         var sourcePath = moveFileRequest.sourcePath().trim();
         var destinationPath = moveFileRequest.destinationPath().trim();
         fileSystemService.moveFile(sourcePath, destinationPath);
-        return new FileSystemResponse("File has been deleted successfully");
+        return new FileSystemResponse("File has been moved successfully");
     }
 
     @PostMapping(value = "/write-to-file")

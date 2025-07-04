@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileSystemService {
 
-    private final FileNode root = new FileNode(new File(FileType.DRIVE, "root", "\\", ""));
+    private final FileNode root = new FileNode(new File(FileType.DRIVE, "root", "\\root", ""));
 
     public void createFile(File createFile){
         root.insert(createFile);
@@ -16,6 +16,10 @@ public class FileSystemService {
 
     public void deleteFile(String deleteFilePath){
         root.delete(deleteFilePath);
+    }
+
+    public void moveFile(String sourcePath, String destinationPath){
+        root.move(sourcePath, destinationPath);
     }
 
     public void printFileSystem() {

@@ -30,10 +30,9 @@ public class FileNode {
     }
 
     public void delete(String deleteFilePath) {
-        var parentPath = extractParentPath(deleteFilePath);
-        var parentNode = resolveParentNode(this, parentPath);
+        var parentNode = resolveParentNode(this, deleteFilePath);
 
-        if (deleteFilePath.equals(parentNode.file.name()+"\\")) {
+        if (deleteFilePath.equals(parentNode.file.name())) {
             this.childNodes.remove(parentNode.file.name());
         }
         else {
@@ -43,13 +42,20 @@ public class FileNode {
         }
     }
 
+    public void move(String sourcePath, String destinationPath) {
+
+        var sourceFileNode = resolveParentNode(this, sourcePath);
+        var destinationFileNode = resolveParentNode(this, destinationPath);
+
+    }
+
     public void print() {
         printNode(this, 0);
     }
 
     private void printNode(FileNode fileNode, int level) {
         String indent = "\t".repeat(level);
-        System.out.println(indent + "- " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")");
+        System.out.println(indent + "- " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")" + " " + fileNode.file.path()    );
 
         for (FileNode child : fileNode.childNodes.values()) {
             printNode(child, level + 1);
@@ -58,7 +64,7 @@ public class FileNode {
 
     private String extractParentPath(String path) {
         int lastSeparatorIndex = path.lastIndexOf("\\");
-        return (lastSeparatorIndex == -1) ? "" : path.substring(0, lastSeparatorIndex);
+        return (lastSeparatorIndex == -1) ? path : path.substring(0, lastSeparatorIndex);
     }
 
     private String extractFileName(String path) {
@@ -67,7 +73,7 @@ public class FileNode {
     }
 
     private FileNode resolveParentNode(FileNode root, String fullPath) {
-        var pathSegments = fullPath.split("\\\\");
+        var pathSegments = extractParentPath(fullPath).split("\\\\");
         var currentNode = root;
         for (String segment : pathSegments) {
             currentNode = getChildNodeOrThrow(currentNode, segment);
@@ -79,7 +85,7 @@ public class FileNode {
         var childNode = parentNode.childNodes.get(fileName);
         if (childNode == null) {
             throw new PathNotFoundException("File path doesn't exist!",Map.of(PATH_NOT_FOUND_ERROR_CODE,
-                    List.of("Path not found:" ,parentNode.file.path() + fileName)));
+                    List.of("Path not found:" ,parentNode.file.path() + "\\" + fileName)));
         }
         return childNode;
     }
@@ -92,7 +98,7 @@ public class FileNode {
     private void checkIfPathExists(FileNode parentNode, File newFile) {
         if (parentNode.childNodes.containsKey(newFile.name())) {
             throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
-                    List.of("Path already exists:" ,newFile.path() + newFile.name())));
+                    List.of("Path already exists:" ,newFile.path())));
         }
     }
 

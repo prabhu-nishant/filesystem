@@ -20,22 +20,29 @@ public class FileSystemController {
     @PostMapping(value = "/create")
     @ResponseStatus(CREATED)
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
-        fileSystemService.createFile(new File(createFileRequest.fileType(), createFileRequest.name().trim(),
-                createFileRequest.path().trim(), ""));
+        var fileType = createFileRequest.fileType();
+        var name = createFileRequest.name().trim();
+        var path = createFileRequest.path().trim() + "\\" + createFileRequest.name().trim();
+        var content = "";
+        var file = new File(fileType, name, path, content);
+        fileSystemService.createFile(file);
         return new FileSystemResponse("File Created successfully");
     }
 
     @PostMapping(value = "/delete")
     @ResponseStatus(OK)
     public FileSystemResponse deleteFile(@RequestBody @Valid DeleteFileRequest deleteFileRequest){
-        fileSystemService.deleteFile(deleteFileRequest.path().trim());
+        var deleteFilePath = deleteFileRequest.path().trim();
+        fileSystemService.deleteFile(deleteFilePath);
         return new FileSystemResponse("File has been deleted successfully");
     }
 
     @PostMapping(value = "/move")
     @ResponseStatus(OK)
     public FileSystemResponse moveFile(@RequestBody @Valid MoveFileRequest moveFileRequest){
-
+        var sourcePath = moveFileRequest.sourcePath().trim();
+        var destinationPath = moveFileRequest.destinationPath().trim();
+        fileSystemService.moveFile(sourcePath, destinationPath);
         return new FileSystemResponse("File has been deleted successfully");
     }
 

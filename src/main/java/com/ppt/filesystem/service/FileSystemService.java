@@ -18,8 +18,8 @@ public class FileSystemService {
         root.delete(deleteFilePath);
     }
 
-    public void displayFileSystem(){
-        root.display();
+    public void printFileSystem() {
+        root.print();
     }
 
 }

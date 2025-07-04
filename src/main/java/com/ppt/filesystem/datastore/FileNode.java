@@ -6,11 +6,15 @@ import com.ppt.filesystem.exception.PathNotFoundException;
 import com.ppt.filesystem.model.File;
 import com.ppt.filesystem.model.FileType;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class FileNode {
 
+    public static final String PATH_NOT_FOUND_ERROR_CODE = "path_not_found_error_code";
+    public static final String PATH_ALREADY_EXISTS_ERROR_CODE = "path_already_exists_error_code";
+    public static final String ILLEGAL_FILE_SYSTEM_OPERATION_CODE = "illegal_file_system_operation_error_code";
     private File file;
     private Map<String, FileNode> childNodes;
 
@@ -39,13 +43,17 @@ public class FileNode {
         }
     }
 
-    public void display() {
-        prettyPrint(this, "\n");
+    public void print() {
+        printNode(this, 0);
     }
 
-    private void prettyPrint(FileNode node, String offset){
-        System.out.print(offset + node.file.name() + " (" + node.file.fileType() + ") ");
-        node.childNodes.entrySet().stream().forEach(childNode -> prettyPrint(childNode.getValue(), "\n\t"));
+    private void printNode(FileNode fileNode, int level) {
+        String indent = "\t".repeat(level);
+        System.out.println(indent + "- " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")");
+
+        for (FileNode child : fileNode.childNodes.values()) {
+            printNode(child, level + 1);
+        }
     }
 
     private String extractParentPath(String path) {
@@ -70,8 +78,8 @@ public class FileNode {
     private FileNode getChildNodeOrThrow(FileNode parentNode, String fileName) {
         var childNode = parentNode.childNodes.get(fileName);
         if (childNode == null) {
-            throw new PathNotFoundException("File path doesn't exist!",Map.of("Invalid Path",
-                    parentNode.file.path() + "\\" + fileName));
+            throw new PathNotFoundException("File path doesn't exist!",Map.of(PATH_NOT_FOUND_ERROR_CODE,
+                    List.of("Path not found:" ,parentNode.file.path() + fileName)));
         }
         return childNode;
     }
@@ -83,8 +91,8 @@ public class FileNode {
 
     private void checkIfPathExists(FileNode parentNode, File newFile) {
         if (parentNode.childNodes.containsKey(newFile.name())) {
-            throw new PathExistsException("File path already exists!", Map.of("Invalid Path",
-                    newFile.path() + "\\" + newFile.name()));
+            throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
+                    List.of("Path already exists:" ,newFile.path() + newFile.name())));
         }
     }
 
@@ -95,17 +103,20 @@ public class FileNode {
 
         if (parentType == FileType.TEXT_FILE) {
             throw new IllegalFileSystemException("A text file cannot contain another file!",
-                    Map.of("Invalid File System Operation", newFilePath));
+                    Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE, List.of("A text file cannot contain another file!",
+                            newFilePath)));
         }
 
         if (newType == FileType.DRIVE && !parentNode.file.name().equals("root")) {
             throw new IllegalFileSystemException("A drive cannot be created under another file!",
-                    Map.of("Invalid File System Operation", newFilePath));
+                    Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE, List.of("A drive cannot be created under another file!",
+                            newFilePath)));
         }
 
         if (newType != FileType.DRIVE && parentNode.file.name().equals("root")) {
             throw new IllegalFileSystemException("A non-drive file must be contained under another file!",
-                    Map.of("Invalid File System Operation", newFilePath));
+                    Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE,
+                            List.of("A non-drive file must be contained under another file!", newFilePath)));
         }
     }
 }

@@ -22,34 +22,34 @@ public class FileSystemController {
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
         fileSystemService.createFile(new File(createFileRequest.fileType(), createFileRequest.name().trim(),
                 createFileRequest.path().trim(), ""));
-        return new FileSystemResponse("");
+        return new FileSystemResponse("File Created successfully");
     }
 
     @PostMapping(value = "/delete")
     @ResponseStatus(OK)
     public FileSystemResponse deleteFile(@RequestBody @Valid DeleteFileRequest deleteFileRequest){
         fileSystemService.deleteFile(deleteFileRequest.path().trim());
-        return new FileSystemResponse("");
+        return new FileSystemResponse("File has been deleted successfully");
     }
 
     @PostMapping(value = "/move")
     @ResponseStatus(OK)
     public FileSystemResponse moveFile(@RequestBody @Valid MoveFileRequest moveFileRequest){
 
-        return new FileSystemResponse("");
+        return new FileSystemResponse("File has been deleted successfully");
     }
 
     @PostMapping(value = "/write-to-file")
     @ResponseStatus(OK)
     public FileSystemResponse writeToFile(@RequestBody @Valid WriteToFileRequest writeToFileRequest){
 
-        return new FileSystemResponse("");
+        return new FileSystemResponse("Content has been written to the file successfully");
     }
 
-    @GetMapping(value = "/display")
+    @GetMapping(value = "/print")
     @ResponseStatus(OK)
-    public FileSystemResponse display(){
-        fileSystemService.displayFileSystem();
+    public FileSystemResponse print() {
+        fileSystemService.printFileSystem();
         return new FileSystemResponse("");
     }
 }

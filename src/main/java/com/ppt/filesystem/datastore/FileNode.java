@@ -49,7 +49,6 @@ public class FileNode {
         var sourceNode = traverseNode(this, sourcePath);
         var destinationNode = traverseNode(this, destinationPath);
         var movedFileNode = getNewFileNode(sourceNode, destinationPath);
-        movedFileNode.childNodes.putAll(sourceNode.childNodes);
         validateInsertion(destinationNode, movedFileNode.file);
         updateChildNodes(movedFileNode.childNodes, movedFileNode.file.path());
         destinationNode.childNodes.putIfAbsent(movedFileNode.file.name(), movedFileNode);
@@ -57,12 +56,10 @@ public class FileNode {
     }
 
     private void updateChildNodes(Map<String, FileNode> childNodes, String destinationPath) {
-
         childNodes.replaceAll((name, childNode) -> {
             var updatedChild = getNewFileNode(childNode, destinationPath);
             updateChildNodes(updatedChild.childNodes, updatedChild.file.path());
-            return updatedChild;
-        });
+            return updatedChild; });
     }
 
     public void print() {
@@ -80,7 +77,7 @@ public class FileNode {
     }
 
     private void printNode(FileNode fileNode, int level) {
-        String indent = "-----".repeat(level);
+        String indent = "\t".repeat(level);
         System.out.println(indent + " - " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")" + " " + fileNode.file.path()    );
 
         for (FileNode child : fileNode.childNodes.values()) {

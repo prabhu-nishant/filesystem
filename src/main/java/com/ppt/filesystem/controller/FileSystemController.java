@@ -20,13 +20,17 @@ public class FileSystemController {
     @PostMapping(value = "/create")
     @ResponseStatus(CREATED)
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
+        File file = getFile(createFileRequest);
+        fileSystemService.createFile(file);
+        return new FileSystemResponse("File Created successfully");
+    }
+
+    private File getFile(CreateFileRequest createFileRequest) {
         var fileType = createFileRequest.fileType();
         var name = createFileRequest.name().trim();
         var path = createFileRequest.path().trim() + "\\" + createFileRequest.name().trim();
         var content = "";
-        var file = new File(fileType, name, path, content);
-        fileSystemService.createFile(file);
-        return new FileSystemResponse("File Created successfully");
+        return new File(fileType, name, path, content);
     }
 
     @PostMapping(value = "/delete")

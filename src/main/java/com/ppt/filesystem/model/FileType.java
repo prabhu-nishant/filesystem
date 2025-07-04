@@ -10,8 +10,8 @@ import java.util.Arrays;
 public enum FileType {
     DRIVE("Drive"),
     FOLDER("Folder"),
-    ZIP_FILE("Zip File"),
-    TEXT_FILE("Text File");
+    ZIP_FILE("Zip"),
+    TEXT_FILE("Text");
 
     private final String value;
 

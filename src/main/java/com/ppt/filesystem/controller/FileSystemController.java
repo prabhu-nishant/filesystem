@@ -20,15 +20,15 @@ public class FileSystemController {
     @PostMapping(value = "/create")
     @ResponseStatus(CREATED)
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
-        fileSystemService.createFile(new File(createFileRequest.fileType(), createFileRequest.name(),
-                createFileRequest.path(), ""));
+        fileSystemService.createFile(new File(createFileRequest.fileType(), createFileRequest.name().trim(),
+                createFileRequest.path().trim(), ""));
         return new FileSystemResponse("");
     }
 
     @PostMapping(value = "/delete")
     @ResponseStatus(OK)
     public FileSystemResponse deleteFile(@RequestBody @Valid DeleteFileRequest deleteFileRequest){
-        fileSystemService.deleteFile(deleteFileRequest.path());
+        fileSystemService.deleteFile(deleteFileRequest.path().trim());
         return new FileSystemResponse("");
     }
 
@@ -43,6 +43,13 @@ public class FileSystemController {
     @ResponseStatus(OK)
     public FileSystemResponse writeToFile(@RequestBody @Valid WriteToFileRequest writeToFileRequest){
 
+        return new FileSystemResponse("");
+    }
+
+    @GetMapping(value = "/display")
+    @ResponseStatus(OK)
+    public FileSystemResponse display(){
+        fileSystemService.displayFileSystem();
         return new FileSystemResponse("");
     }
 }

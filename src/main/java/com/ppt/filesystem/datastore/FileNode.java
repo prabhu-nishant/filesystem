@@ -26,7 +26,36 @@ public class FileNode {
     }
 
     public void delete(String deleteFilePath) {
-        var parentNode = resolveParentNode(this, deleteFilePath);
+        var parentPath = extractParentPath(deleteFilePath);
+        var parentNode = resolveParentNode(this, parentPath);
+
+        if (deleteFilePath.equals(parentNode.file.name()+"\\")) {
+            this.childNodes.remove(parentNode.file.name());
+        }
+        else {
+            var fileName = extractFileName(deleteFilePath);
+            var nodeToDelete = getChildNodeOrThrow(parentNode, fileName);
+            parentNode.childNodes.remove(nodeToDelete.file.name());
+        }
+    }
+
+    public void display() {
+        prettyPrint(this, "\n");
+    }
+
+    private void prettyPrint(FileNode node, String offset){
+        System.out.print(offset + node.file.name() + " (" + node.file.fileType() + ") ");
+        node.childNodes.entrySet().stream().forEach(childNode -> prettyPrint(childNode.getValue(), "\n\t"));
+    }
+
+    private String extractParentPath(String path) {
+        int lastSeparatorIndex = path.lastIndexOf("\\");
+        return (lastSeparatorIndex == -1) ? "" : path.substring(0, lastSeparatorIndex);
+    }
+
+    private String extractFileName(String path) {
+        int lastSeparatorIndex = path.lastIndexOf("\\");
+        return (lastSeparatorIndex == -1) ? path : path.substring(lastSeparatorIndex + 1);
     }
 
     private FileNode resolveParentNode(FileNode root, String fullPath) {
@@ -38,11 +67,11 @@ public class FileNode {
         return currentNode;
     }
 
-    private FileNode getChildNodeOrThrow(FileNode parentNode, String segment) {
-        var childNode = parentNode.childNodes.get(segment);
+    private FileNode getChildNodeOrThrow(FileNode parentNode, String fileName) {
+        var childNode = parentNode.childNodes.get(fileName);
         if (childNode == null) {
             throw new PathNotFoundException("File path doesn't exist!",Map.of("Invalid Path",
-                    parentNode.file.path() + "\\" + segment));
+                    parentNode.file.path() + "\\" + fileName));
         }
         return childNode;
     }
@@ -69,10 +98,14 @@ public class FileNode {
                     Map.of("Invalid File System Operation", newFilePath));
         }
 
-        if (newType == FileType.DRIVE && parentType != FileType.DRIVE) {
+        if (newType == FileType.DRIVE && !parentNode.file.name().equals("root")) {
             throw new IllegalFileSystemException("A drive cannot be created under another file!",
                     Map.of("Invalid File System Operation", newFilePath));
         }
-    }
 
+        if (newType != FileType.DRIVE && parentNode.file.name().equals("root")) {
+            throw new IllegalFileSystemException("A non-drive file must be contained under another file!",
+                    Map.of("Invalid File System Operation", newFilePath));
+        }
+    }
 }

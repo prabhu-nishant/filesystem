@@ -20,48 +20,35 @@ public class FileSystemController {
     @PostMapping(value = "/create")
     @ResponseStatus(CREATED)
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
-        File file = getFile(createFileRequest);
-        fileSystemService.createFile(file);
+        fileSystemService.createFile(createFileRequest);
         return new FileSystemResponse("File Created successfully");
-    }
-
-    private File getFile(CreateFileRequest createFileRequest) {
-        var fileType = createFileRequest.fileType();
-        var name = createFileRequest.name().trim();
-        var path = createFileRequest.path().trim() + "\\" + createFileRequest.name().trim();
-        var content = "";
-        return new File(fileType, name, path, content);
     }
 
     @PostMapping(value = "/delete")
     @ResponseStatus(OK)
     public FileSystemResponse deleteFile(@RequestBody @Valid DeleteFileRequest deleteFileRequest){
-        var deleteFilePath = deleteFileRequest.path().trim();
-        fileSystemService.deleteFile(deleteFilePath);
+        fileSystemService.deleteFile(deleteFileRequest);
         return new FileSystemResponse("File has been deleted successfully");
     }
 
     @PostMapping(value = "/move")
     @ResponseStatus(OK)
     public FileSystemResponse moveFile(@RequestBody @Valid MoveFileRequest moveFileRequest){
-        var sourcePath = moveFileRequest.sourcePath().trim();
-        var destinationPath = moveFileRequest.destinationPath().trim();
-        fileSystemService.moveFile(sourcePath, destinationPath);
+        fileSystemService.moveFile(moveFileRequest);
         return new FileSystemResponse("File has been moved successfully");
     }
 
     @PostMapping(value = "/write-to-file")
     @ResponseStatus(OK)
     public FileSystemResponse writeToFile(@RequestBody @Valid WriteToFileRequest writeToFileRequest){
-
-        fileSystemService.writeToFile(writeToFileRequest.path(), writeToFileRequest.content());
+        fileSystemService.writeToFile(writeToFileRequest);
         return new FileSystemResponse("Content has been written to the file successfully");
     }
 
     @GetMapping(value = "/print-file-content")
     @ResponseStatus(OK)
     public FileSystemResponse printFileContent(@RequestBody @Valid PrintFileContentRequest printFileContentRequest) {
-        String response = fileSystemService.printFileContent(printFileContentRequest.path());
+        String response = fileSystemService.printFileContent(printFileContentRequest);
         return new FileSystemResponse(response);
     }
 

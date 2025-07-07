@@ -1,34 +1,52 @@
 package com.ppt.filesystem.service;
 
 import com.ppt.filesystem.datastore.FileNode;
-import com.ppt.filesystem.model.File;
-import com.ppt.filesystem.model.FileType;
+import com.ppt.filesystem.model.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class FileSystemService {
 
-    private final FileNode root = new FileNode(new File(FileType.DRIVE, "root", "\\root", ""));
+    private final FileNode root;
 
-    public void createFile(File createFile){
+    public void createFile(CreateFileRequest createFileRequest){
+        var createFile = getFile(createFileRequest);
         root.insert(createFile);
     }
 
-    public void deleteFile(String deleteFilePath){
+    public void deleteFile(DeleteFileRequest deleteFileRequest){
+        var deleteFilePath = deleteFileRequest.path().trim();
         root.delete(deleteFilePath);
     }
 
-    public void moveFile(String sourcePath, String destinationPath){
+    public void moveFile(MoveFileRequest moveFileRequest){
+        var sourcePath = moveFileRequest.sourcePath().trim();
+        var destinationPath = moveFileRequest.destinationPath().trim();
         root.move(sourcePath, destinationPath);
     }
 
-    public void writeToFile(String filePath, String content) {
+    public void writeToFile(WriteToFileRequest writeToFileRequest) {
+        String filePath = writeToFileRequest.path().trim();
+        String content = writeToFileRequest.content().trim();
         root.writeToFile(filePath, content);
     }
 
-    public String printFileContent(String path) { return root.printFileContent(path); }
+    public String printFileContent(PrintFileContentRequest printFileContentRequest) {
+        String path = printFileContentRequest.path();
+        return root.printFileContent(path);
+    }
 
     public void printFileSystem() {
         root.print();
+    }
+
+    private File getFile(CreateFileRequest createFileRequest) {
+        var fileType = createFileRequest.fileType();
+        var name = createFileRequest.name().trim();
+        var path = createFileRequest.path().trim() + "\\" + createFileRequest.name().trim();
+        var content = "";
+        return new File(fileType, name, path, content);
     }
 }

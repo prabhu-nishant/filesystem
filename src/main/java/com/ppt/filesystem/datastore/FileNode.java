@@ -81,11 +81,12 @@ public class FileNode {
         printNode(this, 0);
     }
 
-    public void checkIfPathExists(FileNode parentNode, File newFile) {
+    public boolean checkIfPathExists(FileNode parentNode, File newFile) {
         if (parentNode.childNodes.containsKey(newFile.name())) {
             throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
                     List.of("Path already exists:" ,newFile.path())));
         }
+        return true;
     }
 
     public FileNode traverseNode(FileNode root, String path) {
@@ -159,17 +160,16 @@ public class FileNode {
         checkIllegalFileSystemOperation(parentNode, newFile);
     }
 
-    private void checkIfTextFile(String filePath, FileNode nodeToBeUpdated) {
+    private boolean checkIfTextFile(String filePath, FileNode nodeToBeUpdated) {
         if(!FileType.TEXT_FILE.equals(nodeToBeUpdated.file.fileType())){
             throw new IllegalFileSystemException("Cannot write content to a non text file!!",
                     Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE, List.of("Cannot write content to a non text file!!",
                             filePath)));
         }
+        return true;
     }
 
-
-
-    private void checkIllegalFileSystemOperation(FileNode parentNode, File newFile) {
+    private boolean checkIllegalFileSystemOperation(FileNode parentNode, File newFile) {
         var parentType = parentNode.file.fileType();
         var newType = newFile.fileType();
         var newFilePath = newFile.path();
@@ -191,7 +191,6 @@ public class FileNode {
                     Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE,
                             List.of("A non-drive file must be contained under another file!", newFilePath)));
         }
+        return false;
     }
-
-
 }

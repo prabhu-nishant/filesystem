@@ -15,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -133,6 +132,82 @@ class FileSystemControllerTest {
                             .content(requestBody))
                     .andExpect(status().isCreated())
                     .andExpect(content().json(toJsonString(new FileSystemResponse("File Created successfully"))));
+        }
+
+        @Test
+        void createFile_InvalidFileName() throws Exception {
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "", "A"));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"name\":[\"NotBlank.createFileRequest.name\",\"NotBlank.name\",\"NotBlank.java.lang.String\",\"NotBlank\"]}"));
+        }
+
+        @Test
+        void createFile_InvalidFileName2() throws Exception {
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "$%AF", "A"));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"name\":[\"Pattern.createFileRequest.name\",\"Pattern.name\",\"Pattern.java.lang.String\",\"Pattern\"]}"));
+        }
+
+        @Test
+        void createFile_InvalidPath() throws Exception {
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "A", ""));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path\":[\"Pattern.createFileRequest.path\",\"Pattern.path\",\"Pattern.java.lang.String\",\"Pattern\"]}"));
+        }
+
+        @Test
+        void createFile_PathNotFound() throws Exception {
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "testCreateFile", "A"));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path_not_found_error_code\":[\"Path not found:\",\"\\root\\A\"]}"));
+        }
+
+        @Test
+        void createFile_PathAlreadyExists() throws Exception {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            fileSystemService.createFile(createFileRequest);
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "A", "\\"));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path_already_exists_error_code\":[\"Path already exists:\",\"\\\\\\\\A\"]}"));
+        }
+
+        @Test
+        void createFile_DriveUnderAnotherFile() throws Exception {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            fileSystemService.createFile(createFileRequest);
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "B", "A"));
+            var mvcResult = mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"illegal_file_system_operation_error_code\":[\"A drive cannot be created under another file!\",\"A\\\\B\"]}"));
         }
 
         @Test

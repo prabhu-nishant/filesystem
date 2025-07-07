@@ -1,6 +1,8 @@
 package com.ppt.filesystem.service;
 
 import com.ppt.filesystem.datastore.FileNode;
+import com.ppt.filesystem.exception.IllegalFileSystemException;
+import com.ppt.filesystem.exception.PathExistsException;
 import com.ppt.filesystem.exception.PathNotFoundException;
 import com.ppt.filesystem.model.*;
 import org.junit.jupiter.api.Nested;
@@ -15,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -131,6 +132,50 @@ class FileSystemServiceTest {
         }
 
         @Test
+        void createFile_PathAlreadyExists() {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            target.createFile(createFileRequest);
+            var createFileRequest2 = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            var exception = assertThrows(PathExistsException.class, () -> {
+                target.createFile(createFileRequest2);
+            });
+            assertThat(exception.getMessage().equals("File path already exists!"));
+        }
+
+        @Test
+        void createFile_TextFileUnderAnotherTextFile() {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            target.createFile(createFileRequest);
+            var createFileRequest2 = new CreateFileRequest(FileType.TEXT_FILE, "B", "A");
+            target.createFile(createFileRequest2);
+            var createFileRequest3 = new CreateFileRequest(FileType.TEXT_FILE, "C", "A\\B");
+            var exception = assertThrows(IllegalFileSystemException.class, () -> {
+                target.createFile(createFileRequest3);
+            });
+            assertThat(exception.getMessage().equals("A text file cannot contain another file!"));
+        }
+
+        @Test
+        void createFile_DriveUnderAnotherFile() {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            target.createFile(createFileRequest);
+            var createFileRequest2 = new CreateFileRequest(FileType.DRIVE, "B", "A");
+            var exception = assertThrows(IllegalFileSystemException.class, () -> {
+                target.createFile(createFileRequest2);
+            });
+            assertThat(exception.getMessage().equals("A drive cannot be created under another file!"));
+        }
+
+        @Test
+        void createFile_NonDriveFileShouldBeUnderAnotherFile() {
+            var createFileRequest = new CreateFileRequest(FileType.TEXT_FILE, "A", "\\");
+            var exception = assertThrows(IllegalFileSystemException.class, () -> {
+                target.createFile(createFileRequest);
+            });
+            assertThat(exception.getMessage().equals("A non-drive file must be contained under another file!"));
+        }
+
+        @Test
         void deleteFile() {
             var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
             var deleteFileRequest = new DeleteFileRequest("A");
@@ -180,6 +225,17 @@ class FileSystemServiceTest {
             assertThat(file.name()).isEqualTo("B");
             assertThat(file.path()).isEqualTo("A\\B");
             assertThat(file.content()).isEqualTo("Hello World!");
+        }
+
+        @Test
+        void writeToNonTextFile() {
+            var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            var writeToFileRequest = new WriteToFileRequest("A", "Hello World!");
+            target.createFile(createFileRequest);
+            var exception = assertThrows(IllegalFileSystemException.class, () -> {
+                target.writeToFile(writeToFileRequest);
+            });
+            assertThat(exception.getMessage().equals("Cannot write content to a non text file!!"));
         }
 
         @Test

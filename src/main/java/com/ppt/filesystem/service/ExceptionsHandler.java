@@ -22,7 +22,8 @@ public class ExceptionsHandler {
         var errorMessages = exception.getBindingResult().getAllErrors().stream()
                 .collect(toMap(
                         error -> error instanceof FieldError ? ((FieldError) error).getField() : error.getObjectName(),
-                        error -> error.getCodes() == null ? new String[0] : error.getCodes()));
+                        error -> error.getCodes() == null ? new String[0] : error.getCodes(),
+                        (oldValue, newValue) -> newValue));
                 return new ResponseEntity<>(errorMessages, BAD_REQUEST);
     }
 

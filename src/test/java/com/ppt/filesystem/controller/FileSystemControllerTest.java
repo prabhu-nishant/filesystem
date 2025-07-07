@@ -1,5 +1,7 @@
 package com.ppt.filesystem.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ppt.filesystem.model.*;
 import com.ppt.filesystem.service.FileSystemService;
 import org.junit.jupiter.api.Nested;
@@ -13,13 +15,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class FileSystemControllerTest {
 
@@ -109,8 +117,96 @@ class FileSystemControllerTest {
     class FileSystemControllerIT{
 
         @Autowired
+        private ObjectMapper objectMapper;
+
+        @Autowired
         private MockMvc mockMvc;
 
+        @Autowired
+        private FileSystemService fileSystemService;
+
+        @Test
+        void createFile() throws Exception {
+            var requestBody = toJsonString(new CreateFileRequest(FileType.DRIVE, "testCreateFile", "\\"));
+            mockMvc.perform(post("/file/create")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isCreated())
+                    .andExpect(content().json(toJsonString(new FileSystemResponse("File Created successfully"))));
+        }
+
+        @Test
+        void deleteFile() throws Exception {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            fileSystemService.createFile(createFile);
+            var requestBody = toJsonString(new DeleteFileRequest("D"));
+            mockMvc.perform(post("/file/delete")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(toJsonString(
+                            new FileSystemResponse("File has been deleted successfully"))));
+        }
+
+        @Test
+        void moveFile() throws Exception {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            var createFile1 = new CreateFileRequest(FileType.FOLDER, "E", "D");
+            var createFile2 = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            fileSystemService.createFile(createFile);
+            fileSystemService.createFile(createFile1);
+            fileSystemService.createFile(createFile2);
+
+            var requestBody = toJsonString(new MoveFileRequest("D\\E", "A"));
+            mockMvc.perform(post("/file/move")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(toJsonString(
+                            new FileSystemResponse("File has been moved successfully"))));
+        }
+
+        @Test
+        void writeToFile() throws Exception  {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            var createFile1 = new CreateFileRequest(FileType.TEXT_FILE, "I", "D");
+            fileSystemService.createFile(createFile);
+            fileSystemService.createFile(createFile1);
+
+            var requestBody = toJsonString(new WriteToFileRequest("D\\I", "ABC"));
+            mockMvc.perform(post("/file/write-to-file")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(toJsonString(
+                            new FileSystemResponse("Content has been written to the file successfully"))));
+        }
+
+        @Test
+        void printFileContent() throws Exception {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            var createFile1 = new CreateFileRequest(FileType.TEXT_FILE, "I", "D");
+            var writeToFile = new WriteToFileRequest("D\\I", "ABC");
+            fileSystemService.createFile(createFile);
+            fileSystemService.createFile(createFile1);
+            fileSystemService.writeToFile(writeToFile);
+
+            var requestBody = toJsonString(new PrintFileContentRequest("D\\I"));
+            mockMvc.perform(get("/file/print-file-content")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(content().json(toJsonString(new FileSystemResponse("ABC"))));
+        }
+
+        @Test
+        void print() throws Exception {
+            mockMvc.perform(get("/file/print")).andExpect(status().isOk());
+        }
+
+        private String toJsonString(Object data) throws JsonProcessingException {
+            return objectMapper.writeValueAsString(data);
+        }
     }
 }
 

@@ -5,11 +5,13 @@ import com.ppt.filesystem.exception.PathExistsException;
 import com.ppt.filesystem.exception.PathNotFoundException;
 import com.ppt.filesystem.model.File;
 import com.ppt.filesystem.model.FileType;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Getter
 public class FileNode {
 
     public static final String PATH_NOT_FOUND_ERROR_CODE = "path_not_found_error_code";
@@ -79,6 +81,22 @@ public class FileNode {
         printNode(this, 0);
     }
 
+    public void checkIfPathExists(FileNode parentNode, File newFile) {
+        if (parentNode.childNodes.containsKey(newFile.name())) {
+            throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
+                    List.of("Path already exists:" ,newFile.path())));
+        }
+    }
+
+    public FileNode traverseNode(FileNode root, String path) {
+        var pathSegments = path.split("\\\\");
+        var currentNode = root;
+        for (String segment : pathSegments) {
+            currentNode = getChildNodeOrThrow(currentNode, segment);
+        }
+        return currentNode;
+    }
+
     private FileNode getParentNode(FileNode root, String filePath) {
         var parentPath = extractParentPath(filePath);
         var parentNode = traverseNode(root, parentPath);
@@ -127,15 +145,6 @@ public class FileNode {
         return (lastSeparatorIndex == -1) ? path : path.substring(lastSeparatorIndex + 1);
     }
 
-    private FileNode traverseNode(FileNode root, String path) {
-        var pathSegments = path.split("\\\\");
-        var currentNode = root;
-        for (String segment : pathSegments) {
-            currentNode = getChildNodeOrThrow(currentNode, segment);
-        }
-        return currentNode;
-    }
-
     private FileNode getChildNodeOrThrow(FileNode parentNode, String fileName) {
         var childNode = parentNode.childNodes.get(fileName);
         if (childNode == null) {
@@ -158,12 +167,7 @@ public class FileNode {
         }
     }
 
-    private void checkIfPathExists(FileNode parentNode, File newFile) {
-        if (parentNode.childNodes.containsKey(newFile.name())) {
-            throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
-                    List.of("Path already exists:" ,newFile.path())));
-        }
-    }
+
 
     private void checkIllegalFileSystemOperation(FileNode parentNode, File newFile) {
         var parentType = parentNode.file.fileType();

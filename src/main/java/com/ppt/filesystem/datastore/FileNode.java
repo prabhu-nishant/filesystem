@@ -24,22 +24,19 @@ public class FileNode {
     }
 
     public void insert(File newFile) {
-        var parentPath = extractParentPath(newFile.path());
-        var parentNode = traverseNode(this, parentPath);
+        var parentNode = getParentNode(this, newFile.path());
         validateInsertion(parentNode, newFile);
         parentNode.childNodes.putIfAbsent(newFile.name(), new FileNode(newFile));
     }
 
     public void delete(String deleteFilePath) {
-        var parentPath = extractParentPath(deleteFilePath);
-        var parentNode = traverseNode(this, parentPath);
+        var parentNode = getParentNode(this, deleteFilePath);
 
         if (deleteFilePath.equals(parentNode.file.name())) {
             this.childNodes.remove(parentNode.file.name());
         }
         else {
-            var fileName = extractFileName(deleteFilePath);
-            var nodeToDelete = getChildNodeOrThrow(parentNode, fileName);
+            FileNode nodeToDelete = getChildNode(parentNode, deleteFilePath);
             parentNode.childNodes.remove(nodeToDelete.file.name());
         }
     }
@@ -55,15 +52,50 @@ public class FileNode {
         delete(sourcePath);
     }
 
+    public void writeToFile(String filePath, String content) {
+
+        FileNode nodeToBeUpdated = null;
+        var parentNode = getParentNode(this, filePath);
+
+        if (filePath.equals(parentNode.file.name())) {
+            nodeToBeUpdated = parentNode;
+        } else {
+            nodeToBeUpdated = getChildNode(parentNode, filePath);
+        }
+        checkIfTextFile(filePath, nodeToBeUpdated);
+        var file = nodeToBeUpdated.file;
+        var newFile = new File(file.fileType(), file.name(), file.path(), content);
+        var newFileNode = new FileNode(newFile);
+        newFileNode.childNodes.putAll(nodeToBeUpdated.childNodes);
+        parentNode.childNodes.replace(newFile.name(), newFileNode);
+    }
+
+    public String printFileContent(String path) {
+        var node = traverseNode(this, path);
+        return node.file.content();
+    }
+
+    public void print() {
+        printNode(this, 0);
+    }
+
+    private FileNode getParentNode(FileNode root, String filePath) {
+        var parentPath = extractParentPath(filePath);
+        var parentNode = traverseNode(root, parentPath);
+        return parentNode;
+    }
+
+    private FileNode getChildNode(FileNode parentNode, String filePath) {
+        var fileName = extractFileName(filePath);
+        var nodeToDelete = getChildNodeOrThrow(parentNode, fileName);
+        return nodeToDelete;
+    }
+
     private void updateChildNodes(Map<String, FileNode> childNodes, String destinationPath) {
         childNodes.replaceAll((name, childNode) -> {
             var updatedChild = getNewFileNode(childNode, destinationPath);
             updateChildNodes(updatedChild.childNodes, updatedChild.file.path());
             return updatedChild; });
-    }
-
-    public void print() {
-        printNode(this, 0);
     }
 
     private FileNode getNewFileNode(FileNode fileNode, String filePath){
@@ -118,6 +150,14 @@ public class FileNode {
         checkIllegalFileSystemOperation(parentNode, newFile);
     }
 
+    private void checkIfTextFile(String filePath, FileNode nodeToBeUpdated) {
+        if(!FileType.TEXT_FILE.equals(nodeToBeUpdated.file.fileType())){
+            throw new IllegalFileSystemException("Cannot write content to a non text file!!",
+                    Map.of(ILLEGAL_FILE_SYSTEM_OPERATION_CODE, List.of("Cannot write content to a non text file!!",
+                            filePath)));
+        }
+    }
+
     private void checkIfPathExists(FileNode parentNode, File newFile) {
         if (parentNode.childNodes.containsKey(newFile.name())) {
             throw new PathExistsException("File path already exists!", Map.of(PATH_ALREADY_EXISTS_ERROR_CODE,
@@ -148,4 +188,6 @@ public class FileNode {
                             List.of("A non-drive file must be contained under another file!", newFilePath)));
         }
     }
+
+
 }

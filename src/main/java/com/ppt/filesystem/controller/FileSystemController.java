@@ -54,7 +54,15 @@ public class FileSystemController {
     @ResponseStatus(OK)
     public FileSystemResponse writeToFile(@RequestBody @Valid WriteToFileRequest writeToFileRequest){
 
+        fileSystemService.writeToFile(writeToFileRequest.path(), writeToFileRequest.content());
         return new FileSystemResponse("Content has been written to the file successfully");
+    }
+
+    @GetMapping(value = "/print-file-content")
+    @ResponseStatus(OK)
+    public FileSystemResponse printFileContent(@RequestBody @Valid PrintFileContentRequest printFileContentRequest) {
+        String response = fileSystemService.printFileContent(printFileContentRequest.path());
+        return new FileSystemResponse(response);
     }
 
     @GetMapping(value = "/print")

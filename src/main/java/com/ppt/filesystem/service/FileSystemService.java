@@ -22,8 +22,13 @@ public class FileSystemService {
         root.move(sourcePath, destinationPath);
     }
 
+    public void writeToFile(String filePath, String content) {
+        root.writeToFile(filePath, content);
+    }
+
+    public String printFileContent(String path) { return root.printFileContent(path); }
+
     public void printFileSystem() {
         root.print();
     }
-
 }

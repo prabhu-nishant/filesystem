@@ -79,12 +79,12 @@ class FileSystemServiceTest {
     @Test
     void printFileContent() {
         var printFileContentRequest = new PrintFileContentRequest("D\\C\\E");
-        var excpectedFilePath = "D\\C\\E";
+        var expectedFilePath = "D\\C\\E";
         var expectedContent = "Hello world!";
         when(root.printFileContent(anyString())).thenReturn("Hello world!");
-        String content = target.printFileContent(printFileContentRequest);
+        var content = target.printFileContent(printFileContentRequest);
         verify(root).printFileContent(stringArgumentCaptor.capture());
-        assertThat(stringArgumentCaptor.getValue()).isEqualTo(excpectedFilePath);
+        assertThat(stringArgumentCaptor.getValue()).isEqualTo(expectedFilePath);
         assertThat(content.equals(expectedContent));
     }
 

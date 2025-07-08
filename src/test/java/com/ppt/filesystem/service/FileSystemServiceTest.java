@@ -191,11 +191,13 @@ class FileSystemServiceTest {
         void moveFile() {
             var createFileRequest = new CreateFileRequest(FileType.DRIVE, "A", "\\");
             var createFileRequest1 = new CreateFileRequest(FileType.FOLDER, "B", "A");
-            var createFileRequest2 = new CreateFileRequest(FileType.DRIVE, "C", "\\");
+            var createFileRequest2 = new CreateFileRequest(FileType.FOLDER, "D", "A\\B");
+            var createFileRequest3 = new CreateFileRequest(FileType.DRIVE, "C", "\\");
             var moveFileRequest = new MoveFileRequest("A\\B", "C");
             target.createFile(createFileRequest);
             target.createFile(createFileRequest1);
             target.createFile(createFileRequest2);
+            target.createFile(createFileRequest3);
             target.moveFile(moveFileRequest);
 
             var fileNode = node.traverseNode(node, "C\\B");

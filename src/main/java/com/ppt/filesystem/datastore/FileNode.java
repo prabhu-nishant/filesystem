@@ -51,7 +51,7 @@ public class FileNode {
         var sourceParentNode = getParentNode(this, sourcePath);
         var sourceNode = getChildNode(sourceParentNode, sourcePath);
         var destinationNode = traverseNode(this, destinationPath);
-        var moveFileNode = getNewFileNode(sourceNode, destinationPath);
+        var moveFileNode = getNewFileNodeWithUpdatedPath(sourceNode, destinationPath);
         validateInsertion(destinationNode, moveFileNode.file);
         updateChildNodes(moveFileNode.childNodes, moveFileNode.file.path());
         destinationNode.childNodes.computeIfAbsent(moveFileNode.file.name(), k -> {
@@ -61,7 +61,6 @@ public class FileNode {
     }
 
     public void writeToFile(String filePath, String content) {
-
         FileNode nodeToBeUpdated = null;
         var parentNode = getParentNode(this, filePath);
 
@@ -71,11 +70,8 @@ public class FileNode {
             nodeToBeUpdated = getChildNode(parentNode, filePath);
         }
         checkIfTextFile(filePath, nodeToBeUpdated);
-        var file = nodeToBeUpdated.file;
-        var newFile = new File(file.fileType(), file.name(), file.path(), content);
-        var newFileNode = new FileNode(newFile);
-        newFileNode.childNodes.putAll(nodeToBeUpdated.childNodes);
-        parentNode.childNodes.computeIfPresent(newFile.name(), (k,v) -> newFileNode);
+        var newFileNode = getNewFileNodeWithUpdatedContent(nodeToBeUpdated, content);
+        parentNode.childNodes.computeIfPresent(newFileNode.file.name(), (k,v) -> newFileNode);
     }
 
     public String printFileContent(String path) {
@@ -118,18 +114,27 @@ public class FileNode {
 
     private void updateChildNodes(Map<String, FileNode> childNodes, String destinationPath) {
         childNodes.replaceAll((name, childNode) -> {
-            var updatedChild = getNewFileNode(childNode, destinationPath);
+            var updatedChild = getNewFileNodeWithUpdatedPath(childNode, destinationPath);
             updateChildNodes(updatedChild.childNodes, updatedChild.file.path());
             return updatedChild; });
     }
 
-    private FileNode getNewFileNode(FileNode fileNode, String filePath){
+    private FileNode getNewFileNodeWithUpdatedPath(FileNode fileNode, String filePath){
         var file = fileNode.file;
-        var filename = file.name();
-        var newFilePath = filePath + "\\" + filename;
-        var newFile = new File(file.fileType(), filename, newFilePath, file.content());
+        var newFilePath = filePath + "\\" + file.name();
+        return getNewFileNode(file.fileType(), file.name(), newFilePath, file.content(), fileNode.childNodes);
+    }
+
+    private FileNode getNewFileNodeWithUpdatedContent(FileNode fileNode, String content){
+        var file = fileNode.file;
+        return getNewFileNode(file.fileType(), file.name(), file.path(), content, fileNode.childNodes);
+    }
+
+    private FileNode getNewFileNode(FileType fileType, String fileName, String filePath, String content,
+                                    Map<String, FileNode> childNodes){
+        var newFile = new File(fileType, fileName, filePath, content);
         var newFileNode = new FileNode(newFile);
-        newFileNode.childNodes.putAll(fileNode.childNodes);
+        newFileNode.childNodes.putAll(childNodes);
         return newFileNode;
     }
 

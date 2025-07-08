@@ -75,7 +75,7 @@ public class FileNode {
         var newFile = new File(file.fileType(), file.name(), file.path(), content);
         var newFileNode = new FileNode(newFile);
         newFileNode.childNodes.putAll(nodeToBeUpdated.childNodes);
-        parentNode.childNodes.replace(newFile.name(), newFileNode);
+        parentNode.childNodes.computeIfPresent(newFile.name(), (k,v) -> newFileNode);
     }
 
     public String printFileContent(String path) {

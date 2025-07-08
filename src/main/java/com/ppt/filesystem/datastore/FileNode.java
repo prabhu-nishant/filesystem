@@ -33,26 +33,30 @@ public class FileNode {
 
     public void delete(String deleteFilePath) {
         var parentNode = getParentNode(this, deleteFilePath);
+        deleteNode(parentNode, deleteFilePath);
+    }
 
+    private void deleteNode(FileNode parentNode, String deleteFilePath) {
         if (deleteFilePath.equals(parentNode.file.name())) {
             this.childNodes.remove(parentNode.file.name());
         }
         else {
-            FileNode nodeToDelete = getChildNode(parentNode, deleteFilePath);
+            var nodeToDelete = getChildNode(parentNode, deleteFilePath);
             parentNode.childNodes.remove(nodeToDelete.file.name());
         }
     }
 
     public void move(String sourcePath, String destinationPath) {
 
-        var sourceNode = traverseNode(this, sourcePath);
+        var sourceParentNode = getParentNode(this, sourcePath);
+        var sourceNode = getChildNode(sourceParentNode, sourcePath);
         var destinationNode = traverseNode(this, destinationPath);
-        var movedFileNode = getNewFileNode(sourceNode, destinationPath);
-        validateInsertion(destinationNode, movedFileNode.file);
-        updateChildNodes(movedFileNode.childNodes, movedFileNode.file.path());
-        destinationNode.childNodes.computeIfAbsent(movedFileNode.file.name(), k -> {
-            delete(sourcePath);
-            return movedFileNode;
+        var moveFileNode = getNewFileNode(sourceNode, destinationPath);
+        validateInsertion(destinationNode, moveFileNode.file);
+        updateChildNodes(moveFileNode.childNodes, moveFileNode.file.path());
+        destinationNode.childNodes.computeIfAbsent(moveFileNode.file.name(), k -> {
+            deleteNode(sourceParentNode, sourcePath);
+            return moveFileNode;
         });
     }
 

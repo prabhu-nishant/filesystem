@@ -50,8 +50,10 @@ public class FileNode {
         var movedFileNode = getNewFileNode(sourceNode, destinationPath);
         validateInsertion(destinationNode, movedFileNode.file);
         updateChildNodes(movedFileNode.childNodes, movedFileNode.file.path());
-        destinationNode.childNodes.putIfAbsent(movedFileNode.file.name(), movedFileNode);
-        delete(sourcePath);
+        destinationNode.childNodes.computeIfAbsent(movedFileNode.file.name(), k -> {
+            delete(sourcePath);
+            return movedFileNode;
+        });
     }
 
     public void writeToFile(String filePath, String content) {
@@ -194,3 +196,5 @@ public class FileNode {
         return false;
     }
 }
+
+

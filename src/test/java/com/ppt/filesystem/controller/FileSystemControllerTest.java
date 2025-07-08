@@ -223,6 +223,20 @@ class FileSystemControllerTest {
                             new FileSystemResponse("File has been deleted successfully"))));
         }
 
+
+        @Test
+        void deleteFile_PathNotFound() throws Exception {
+            var requestBody = toJsonString(new DeleteFileRequest("D"));
+            var mvcResult = mockMvc.perform(post("/file/delete")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path_not_found_error_code\":[\"Path not found:\",\"\\root\\D\"]}"));
+        }
+
         @Test
         void moveFile() throws Exception {
             var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
@@ -239,6 +253,46 @@ class FileSystemControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().json(toJsonString(
                             new FileSystemResponse("File has been moved successfully"))));
+        }
+
+        @Test
+        void moveFile_PathNotFound() throws Exception {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            var createFile1 = new CreateFileRequest(FileType.FOLDER, "E", "D");
+            var createFile2 = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            fileSystemService.createFile(createFile);
+            fileSystemService.createFile(createFile1);
+            fileSystemService.createFile(createFile2);
+
+            var requestBody = toJsonString(new MoveFileRequest("D\\E\\F", "A"));
+            var mvcResult = mockMvc.perform(post("/file/move")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path_not_found_error_code\":[\"Path not found:\",\"\\root\\D\\E\\F\"]}"));
+        }
+
+        @Test
+        void moveFile_PathAlreadyExists() throws Exception {
+            var createFile = new CreateFileRequest(FileType.DRIVE, "D", "\\");
+            var createFile1 = new CreateFileRequest(FileType.FOLDER, "E", "D");
+            var createFile2 = new CreateFileRequest(FileType.DRIVE, "A", "\\");
+            var createFile3 = new CreateFileRequest(FileType.FOLDER, "E", "A");
+            fileSystemService.createFile(createFile);
+            fileSystemService.createFile(createFile1);
+            fileSystemService.createFile(createFile2);
+            fileSystemService.createFile(createFile3);
+
+            var requestBody = toJsonString(new MoveFileRequest("D\\E", "A\\"));
+            var mvcResult = mockMvc.perform(post("/file/move")
+                            .contentType(APPLICATION_JSON)
+                            .content(requestBody))
+                    .andExpect(status().isBadRequest())
+                    .andReturn();
+            var content = mvcResult.getResponse().getContentAsString();
+            assertThat(content.equals("{\"path_already_exists_error_code\":[\"Path already exists:\",\"A\\\\\\\\E\"]}"));
         }
 
         @Test

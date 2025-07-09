@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FileSystemConfiguration {
 
-    @Bean
+    @Bean //Creates a root node
     public FileNode getRootNode(){
         return new FileNode(new File(FileType.DRIVE, "root", "\\root", ""));
     }

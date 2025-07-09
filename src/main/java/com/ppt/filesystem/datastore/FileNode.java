@@ -28,6 +28,7 @@ public class FileNode {
         keyLock = new KeyLock();
     }
 
+    //Insert a new file
     public void insert(File newFile) {
         var parentNode = getParentNode(this, newFile.path());
         var path = parentNode.file.path();
@@ -40,6 +41,7 @@ public class FileNode {
         }
     }
 
+    //Delete a new file
     public void delete(String deleteFilePath) {
         var parentNode = getParentNode(this, deleteFilePath);
         try{
@@ -50,6 +52,7 @@ public class FileNode {
         }
     }
 
+    //Move a new file
     public void move(String sourcePath, String destinationPath) {
         var sourceParentNode = getParentNode(this, sourcePath);
         var sourceNode = getChildNode(sourceParentNode, sourcePath);
@@ -74,6 +77,7 @@ public class FileNode {
         }
     }
 
+    //Write to an existing text file
     public void writeToFile(String filePath, String content) {
         var parentNode = getParentNode(this, filePath);
         var nodeToBeUpdated = getNodeToBeUpdated(filePath, parentNode);

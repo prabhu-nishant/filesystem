@@ -17,42 +17,42 @@ public class FileSystemController {
 
     private final FileSystemService fileSystemService;
 
-    @PostMapping(value = "/create")
+    @PostMapping(value = "/create")  // Create a file
     @ResponseStatus(CREATED)
     public FileSystemResponse createFile(@RequestBody @Valid CreateFileRequest createFileRequest){
         fileSystemService.createFile(createFileRequest);
         return new FileSystemResponse("File Created successfully");
     }
 
-    @PostMapping(value = "/delete")
+    @PostMapping(value = "/delete") // Create a file
     @ResponseStatus(OK)
     public FileSystemResponse deleteFile(@RequestBody @Valid DeleteFileRequest deleteFileRequest){
         fileSystemService.deleteFile(deleteFileRequest);
         return new FileSystemResponse("File has been deleted successfully");
     }
 
-    @PostMapping(value = "/move")
+    @PostMapping(value = "/move") // Move a file
     @ResponseStatus(OK)
     public FileSystemResponse moveFile(@RequestBody @Valid MoveFileRequest moveFileRequest){
         fileSystemService.moveFile(moveFileRequest);
         return new FileSystemResponse("File has been moved successfully");
     }
 
-    @PostMapping(value = "/write-to-file")
+    @PostMapping(value = "/write-to-file") // Write to a file
     @ResponseStatus(OK)
     public FileSystemResponse writeToFile(@RequestBody @Valid WriteToFileRequest writeToFileRequest){
         fileSystemService.writeToFile(writeToFileRequest);
         return new FileSystemResponse("Content has been written to the file successfully");
     }
 
-    @GetMapping(value = "/print-file-content")
+    @GetMapping(value = "/print-file-content") // Prints the contents of a file
     @ResponseStatus(OK)
     public FileSystemResponse printFileContent(@RequestBody @Valid PrintFileContentRequest printFileContentRequest) {
         String response = fileSystemService.printFileContent(printFileContentRequest);
         return new FileSystemResponse(response);
     }
 
-    @GetMapping(value = "/print")
+    @GetMapping(value = "/print")  // Prints the entire file system on the system and does not print anything in the response
     @ResponseStatus(OK)
     public FileSystemResponse print() {
         fileSystemService.printFileSystem();

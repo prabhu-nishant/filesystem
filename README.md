@@ -9,7 +9,7 @@
     } </br>
 
     New file at another file. Please don't mention \\\\ in the path at the end. This basically will create a file structure as A\\\\B 
-    { </br> 
+    </br> { </br> 
       "fileType": "folder", </br> 
       "name": "B", </br> 
       "path": "A"  </br> 

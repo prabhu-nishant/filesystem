@@ -1,7 +1,7 @@
 
 1. # Create File: http://localhost:8080/file/create
 
-    Request Body: New file at root level. You mention the path as '\\' if you are creating file at the root level </br>
+    Request Body: New file at root level. You mention the path as '\\\' if you are creating file at the root level </br>
     {
       "fileType": "drive",
       "name": "A",

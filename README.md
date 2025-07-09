@@ -2,11 +2,11 @@
 1. # Create File: http://localhost:8080/file/create
 
     Request Body: New file at root level. You mention the path as '\\\\' if you are creating file at the root level </br>
-    {
-      "fileType": "drive",
-      "name": "A",
-      "path": "\\"   
-    }
+    { </br>
+      "fileType": "drive", </br>
+      "name": "A", </br>
+      "path": "\\\\" </br>  
+    } </br>
 
     New file at another file. #Please don't mention \\ in the path at the end. This basically will create a file structure as A\\B
     {

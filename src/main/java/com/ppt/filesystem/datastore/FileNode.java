@@ -5,6 +5,7 @@ import com.ppt.filesystem.exception.PathExistsException;
 import com.ppt.filesystem.exception.PathNotFoundException;
 import com.ppt.filesystem.model.File;
 import com.ppt.filesystem.model.FileType;
+import com.ppt.filesystem.model.KeyLock;
 import lombok.Getter;
 
 import java.util.List;
@@ -19,59 +20,72 @@ public class FileNode {
     public static final String ILLEGAL_FILE_SYSTEM_OPERATION_CODE = "illegal_file_system_operation_error_code";
     private File file;
     private Map<String, FileNode> childNodes;
+    private KeyLock keyLock;
 
     public FileNode(File file) {
         this.file = file;
         childNodes = new ConcurrentHashMap<>();
+        keyLock = new KeyLock();
     }
 
     public void insert(File newFile) {
         var parentNode = getParentNode(this, newFile.path());
-        validateInsertion(parentNode, newFile);
-        parentNode.childNodes.putIfAbsent(newFile.name(), new FileNode(newFile));
+        var path = parentNode.file.path();
+        try{
+            keyLock.lock(path);
+            validateInsertion(parentNode, newFile);
+            parentNode.childNodes.putIfAbsent(newFile.name(), new FileNode(newFile));
+        } finally {
+            keyLock.unlock(path);
+        }
     }
 
     public void delete(String deleteFilePath) {
         var parentNode = getParentNode(this, deleteFilePath);
-        deleteNode(parentNode, deleteFilePath);
-    }
-
-    private void deleteNode(FileNode parentNode, String deleteFilePath) {
-        if (deleteFilePath.equals(parentNode.file.name())) {
-            this.childNodes.remove(parentNode.file.name());
-        }
-        else {
-            var nodeToDelete = getChildNode(parentNode, deleteFilePath);
-            parentNode.childNodes.remove(nodeToDelete.file.name());
+        try{
+            keyLock.lock(deleteFilePath);
+            deleteNode(parentNode, deleteFilePath);
+        } finally {
+            keyLock.unlock(deleteFilePath);
         }
     }
 
     public void move(String sourcePath, String destinationPath) {
-
         var sourceParentNode = getParentNode(this, sourcePath);
         var sourceNode = getChildNode(sourceParentNode, sourcePath);
+        var sourceNodePath = sourceNode.file.path();
+        
         var destinationNode = traverseNode(this, destinationPath);
+        var destinationNodePath = destinationNode.file.path();
+        
         var moveFileNode = getNewFileNodeWithUpdatedPath(sourceNode, destinationPath);
         validateInsertion(destinationNode, moveFileNode.file);
         updateChildNodes(moveFileNode.childNodes, moveFileNode.file.path());
-        destinationNode.childNodes.computeIfAbsent(moveFileNode.file.name(), k -> {
-            deleteNode(sourceParentNode, sourcePath);
-            return moveFileNode;
-        });
+        try{
+            keyLock.lock(sourceNodePath);
+            keyLock.lock(destinationNodePath);
+            destinationNode.childNodes.computeIfAbsent(moveFileNode.file.name(), k -> {
+                deleteNode(sourceParentNode, sourcePath);
+                return moveFileNode;
+            });
+        } finally {
+            keyLock.unlock(destinationNodePath);
+            keyLock.unlock(sourceNodePath);
+        }
     }
 
     public void writeToFile(String filePath, String content) {
-        FileNode nodeToBeUpdated = null;
         var parentNode = getParentNode(this, filePath);
-
-        if (filePath.equals(parentNode.file.name())) {
-            nodeToBeUpdated = parentNode;
-        } else {
-            nodeToBeUpdated = getChildNode(parentNode, filePath);
-        }
+        var nodeToBeUpdated = getNodeToBeUpdated(filePath, parentNode);
+        var nodeToBeUpdatedPath = nodeToBeUpdated.file.path();
         checkIfTextFile(filePath, nodeToBeUpdated);
         var newFileNode = getNewFileNodeWithUpdatedContent(nodeToBeUpdated, content);
-        parentNode.childNodes.computeIfPresent(newFileNode.file.name(), (k,v) -> newFileNode);
+        try{
+            keyLock.lock(nodeToBeUpdatedPath);
+            parentNode.childNodes.computeIfPresent(newFileNode.file.name(), (k,v) -> newFileNode);
+        } finally{
+            keyLock.unlock(nodeToBeUpdatedPath);
+        }
     }
 
     public String printFileContent(String path) {
@@ -98,6 +112,26 @@ public class FileNode {
             currentNode = getChildNodeOrThrow(currentNode, segment);
         }
         return currentNode;
+    }
+
+    private FileNode getNodeToBeUpdated(String filePath, FileNode parentNode) {
+        FileNode nodeToBeUpdated;
+        if (filePath.equals(parentNode.file.name())) {
+            nodeToBeUpdated = parentNode;
+        } else {
+            nodeToBeUpdated = getChildNode(parentNode, filePath);
+        }
+        return nodeToBeUpdated;
+    }
+
+    private void deleteNode(FileNode parentNode, String deleteFilePath) {
+        if (deleteFilePath.equals(parentNode.file.name())) {
+            this.childNodes.remove(parentNode.file.name());
+        }
+        else {
+            var nodeToDelete = getChildNode(parentNode, deleteFilePath);
+            parentNode.childNodes.remove(nodeToDelete.file.name());
+        }
     }
 
     private FileNode getParentNode(FileNode root, String filePath) {

@@ -223,7 +223,6 @@ class FileSystemControllerTest {
                             new FileSystemResponse("File has been deleted successfully"))));
         }
 
-
         @Test
         void deleteFile_PathNotFound() throws Exception {
             var requestBody = toJsonString(new DeleteFileRequest("D"));

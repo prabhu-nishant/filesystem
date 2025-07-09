@@ -8,14 +8,14 @@
       "path": "\\\\" </br>  
     } </br>
 
-    New file at another file. #Please don't mention \\\\ in the path at the end. This basically will create a file structure as A\\\\B </br>  
+    New file at another file. Please don't mention \\\\ in the path at the end. This basically will create a file structure as A\\\\B 
     { </br> 
       "fileType": "folder", </br> 
       "name": "B", </br> 
       "path": "A"  </br> 
     } </br> 
 
-    New file at another file. Please don't mention \\\\ in the path at the end. This basically will create a file structure as A\\\\B\\\\C  </br>  
+    New file at another file. Please don't mention \\\\ in the path at the end. This basically will create a file structure as A\\\\B\\\\C  
     { </br> 
       "fileType": "folder", </br> 
       "name": "C", </br> 

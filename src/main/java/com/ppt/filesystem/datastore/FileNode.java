@@ -177,7 +177,7 @@ public class FileNode {
     }
 
     private void printNode(FileNode fileNode, int level) {
-        String indent = "\t".repeat(level);
+        var indent = "\t".repeat(level);
         System.out.println(indent + " - " + fileNode.file.name() + " (" + fileNode.file.fileType() + ")" + " " + fileNode.file.path()    );
 
         for (FileNode child : fileNode.childNodes.values()) {
@@ -186,12 +186,12 @@ public class FileNode {
     }
 
     private String extractParentPath(String path) {
-        int lastSeparatorIndex = path.lastIndexOf("\\");
+        var lastSeparatorIndex = path.lastIndexOf("\\");
         return (lastSeparatorIndex == -1) ? path : path.substring(0, lastSeparatorIndex);
     }
 
     private String extractFileName(String path) {
-        int lastSeparatorIndex = path.lastIndexOf("\\");
+        var lastSeparatorIndex = path.lastIndexOf("\\");
         return (lastSeparatorIndex == -1) ? path : path.substring(lastSeparatorIndex + 1);
     }
 

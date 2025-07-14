@@ -48,7 +48,7 @@ public class FileSystemController {
     @GetMapping(value = "/print-file-content") // Prints the contents of a file
     @ResponseStatus(OK)
     public FileSystemResponse printFileContent(@RequestBody @Valid PrintFileContentRequest printFileContentRequest) {
-        String response = fileSystemService.printFileContent(printFileContentRequest);
+        var response = fileSystemService.printFileContent(printFileContentRequest);
         return new FileSystemResponse(response);
     }
 

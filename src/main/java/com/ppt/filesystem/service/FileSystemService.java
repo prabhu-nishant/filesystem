@@ -28,13 +28,13 @@ public class FileSystemService {
     }
 
     public void writeToFile(WriteToFileRequest writeToFileRequest) {
-        String filePath = writeToFileRequest.path().trim();
-        String content = writeToFileRequest.content().trim();
+        var filePath = writeToFileRequest.path().trim();
+        var content = writeToFileRequest.content().trim();
         root.writeToFile(filePath, content);
     }
 
     public String printFileContent(PrintFileContentRequest printFileContentRequest) {
-        String path = printFileContentRequest.path();
+        var path = printFileContentRequest.path();
         return root.printFileContent(path);
     }
 
